@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CookBook", "CookBook\CookBook.csproj", "{7B62B717-90CF-4CC1-B6DF-51FEDC89139B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RBook", "RBook\RBook.csproj", "{DB0BD47E-4BB9-4957-9052-096951BE8720}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RBook", "RBook\RBook.csproj", "{DB0BD47E-4BB9-4957-9052-096951BE8720}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
