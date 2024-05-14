@@ -10,6 +10,7 @@ namespace CookBook.Models
         public DbSet<Recipe> RecipeDs { get; set; } = null!;
         public DbSet<Ingredients> IngredientsDs { get; set; } = null!;
         public DbSet<Use_Recipe> Use_RecipeDs { get; set; } = null!;
+        public DbSet<Recipe_Note> Recipe_NoteDs { get; set; } = null!;
         public DbSet<IngredientMeasurement> IngredientMeasurementDs { get; set; } = null!;
     }
 }

@@ -3,6 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Http.Headers;
 
+//using Newtonsoft.Json;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Newtonsoft.Json;
+using DP.Spoonacular;
+using static Azure.Core.HttpHeader;
+
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace CookBook.Controllers
@@ -28,20 +37,21 @@ namespace CookBook.Controllers
             return await _dbContext.RecipeDs.ToListAsync();
         }
 
-        //public IEnumerable<string> Get()
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
-
+        //to get a recipe from the local book
         // GET api/<RecipeController>/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Recipe>> GetRecipe(int id)
         {
+            
             if (_dbContext.RecipeDs == null)
             {
                 return NotFound();
             }
-            var recipe = await _dbContext.RecipeDs.FindAsync(id);
+            //var recipe = await _dbContext.RecipeDs.FindAsync(id);
+            var recipe = await _dbContext.RecipeDs
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.RecipeId == id);
 
             if (recipe == null)
             {
@@ -60,6 +70,8 @@ namespace CookBook.Controllers
             }
 
             var matchingRecipes = await _dbContext.RecipeDs
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
                 .Where(recipe =>
                     recipe.Title.Contains(keyword) ||
                     recipe.Description.Contains(keyword) ||
@@ -74,28 +86,6 @@ namespace CookBook.Controllers
             return Ok(matchingRecipes);
         }
 
-        //public async Task<string> SearchRecipes(string keyword)
-        //{
-        //    var client = new HttpClient();
-        //    var request = new HttpRequestMessage
-        //    {
-        //        Method = HttpMethod.Get,
-        //        RequestUri = new Uri("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/complexSearch?query=pasta&cuisine=italian&excludeCuisine=greek&diet=vegetarian&intolerances=gluten&equipment=pan&includeIngredients=tomato%2Ccheese&excludeIngredients=eggs&type=main%20course&instructionsRequired=true&fillIngredients=false&addRecipeInformation=false&titleMatch=Crock%20Pot&maxReadyTime=20&ignorePantry=true&sort=calories&sortDirection=asc&minCarbs=10&maxCarbs=100&minProtein=10&maxProtein=100&minCalories=50&maxCalories=800&minFat=10&maxFat=100&minAlcohol=0&maxAlcohol=100&minCaffeine=0&maxCaffeine=100&minCopper=0&maxCopper=100&minCalcium=0&maxCalcium=100&minCholine=0&maxCholine=100&minCholesterol=0&maxCholesterol=100&minFluoride=0&maxFluoride=100&minSaturatedFat=0&maxSaturatedFat=100&minVitaminA=0&maxVitaminA=100&minVitaminC=0&maxVitaminC=100&minVitaminD=0&maxVitaminD=100&minVitaminE=0&maxVitaminE=100&minVitaminK=0&maxVitaminK=100&minVitaminB1=0&maxVitaminB1=100&minVitaminB2=0&maxVitaminB2=100&minVitaminB5=0&maxVitaminB5=100&minVitaminB3=0&maxVitaminB3=100&minVitaminB6=0&maxVitaminB6=100&minVitaminB12=0&maxVitaminB12=100&minFiber=0&maxFiber=100&minFolate=0&maxFolate=100&minFolicAcid=0&maxFolicAcid=100&minIodine=0&maxIodine=100&minIron=0&maxIron=100&minMagnesium=0&maxMagnesium=100&minManganese=0&maxManganese=100&minPhosphorus=0&maxPhosphorus=100&minPotassium=0&maxPotassium=100&minSelenium=0&maxSelenium=100&minSodium=0&maxSodium=100&minSugar=0&maxSugar=100&minZinc=0&maxZinc=100&offset=0&number=10&limitLicense=false&ranking=2"),
-        //        Headers =
-        //        {
-        //            { "X-RapidAPI-Key", "de4ebd0dd2mshce82478f1f9fc9fp1f1bfcjsnb79dc254f7ab" },
-        //            { "X-RapidAPI-Host", "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com" },
-        //        },
-        //    };
-        //    using (var response = await client.SendAsync(request))
-        //    {
-        //        response.EnsureSuccessStatusCode();
-        //        var body = await response.Content.ReadAsStringAsync();
-        //        Console.WriteLine(body);
-        //        return body;
-        //    }
-        //}
-
         // GET /api/recipes/searchbyingredient
         [HttpGet("searchbyingredient/{IngredientName}")]
         public async Task<ActionResult<IEnumerable<Recipe>>> SearchRecipesByIng(string IngredientName)
@@ -104,11 +94,9 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-
-            //var recipesId = await _dbContext.IngredientsDs
-
             var RecipesContainIng = await _dbContext.RecipeDs
-                .Include(r => r.RecipeIngredients) // Include the Ingredients related to the Recipe
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
                 .Where(r => r.RecipeIngredients.Any(i => i.Ingredient.IngredientName.Contains(IngredientName)))
                 .ToListAsync();
 
@@ -120,22 +108,233 @@ namespace CookBook.Controllers
             return Ok(RecipesContainIng);
         }
 
-        // POST api/<RecipeController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+
+        [HttpPost("SavePublicRecipe/{recipeId}")]
+        public async Task<ActionResult<IEnumerable<Recipe>>> SavePublicRecipe(int recipeId)
         {
+            using (var httpClient = new HttpClient())
+            {
+                //https://localhost:7047/api/Spoonacular/RecipeInformation/665469
+                using (var response = await httpClient.GetAsync($"https://localhost:7047/api/Spoonacular/RecipeInformation/{recipeId}"))
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var recipeContent = await response.Content.ReadAsStringAsync();
+                        var recipeWideInfo = JsonConvert.DeserializeObject<RecipeWideInfo>(recipeContent);
+                        var recipe = await _dbContext.RecipeDs.FindAsync(recipeId);
+                        if (_dbContext.RecipeDs == null || recipe != null)
+                        {
+                            return NotFound();
+                        }
+                        var newrecipe = new Recipe
+                        {
+                            //RecipeId = recipeId,
+                            Title = recipeWideInfo.Title,
+                            Description = recipeWideInfo.Summary,
+                            Instructions = recipeWideInfo.Instructions
+                        };
+                        List<IngredientMeasurement> ingredientlist = new List<IngredientMeasurement>();
+                        foreach (var ing in recipeWideInfo.ExtendedIngredients)
+                        {
+                            var existingIng = await _dbContext.IngredientsDs
+                                .FirstOrDefaultAsync(i => i.IngredientName == ing.Name);
+                            //var finding = await _dbContext.RecipeDs.FindAsync(ing.Name);
+                            if (_dbContext.IngredientsDs == null || existingIng == null)
+                            {
+                                var newing = new Ingredients
+                                {
+                                    IngredientName = ing.Name
+                                };
+                                _dbContext.IngredientsDs.Add(newing);
+                                var newingmeas = new IngredientMeasurement
+                                {
+                                    Quantity = ing.Amount,
+                                    Ingredient = newing,
+                                    MeasurementIngredientUnit = ing.Unit
+                                };
+                                ingredientlist.Add(newingmeas);
+                                _dbContext.IngredientMeasurementDs.Add(newingmeas);
+                            }
+                        }
+                        newrecipe.RecipeIngredients = ingredientlist;
+                        _dbContext.RecipeDs.Add(newrecipe);
+                        await _dbContext.SaveChangesAsync();
+                        return CreatedAtAction(nameof(GetRecipe), new { id = newrecipe.RecipeId }, newrecipe);
+                    }
+                    else
+                    {
+                        return BadRequest("Failed to retrieve recipe from public repository.");
+                    }
+                }
+            }
         }
 
-        // PUT api/<RecipeController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        //public async Task<IActionResult> AddSuccessfulRecipe([FromBody] SuccessfulRecipeInputModel successfulRecipeInput)
+        [HttpPost("AddSuccessfulRecipe/{id}")]
+        public async Task<ActionResult<IEnumerable<UsedRecipeInput>>> AddSuccessfulRecipe(int id, [FromBody] UsedRecipeInput usedRecipeInput)
         {
+            try
+            {
+
+                // כאן אפשר להוסיף את הלוגיקה להעלאת התמונה לשרת ולקבלת ה-URL שלה
+                // לדוגמה: var imageUrl = await _imageService.UploadImageAsync(successfulRecipeInput.Image);
+                var recipe = await _dbContext.RecipeDs.FindAsync(id);
+                if (_dbContext.RecipeDs == null || recipe == null)
+                {
+                    return NotFound();
+                }
+                var userecipe = await _dbContext.Use_RecipeDs.FindAsync(id);
+                //if there was'nt a usage in this recipe befor
+                if (userecipe == null)
+                {
+                    var successfulRecipe = new Use_Recipe
+                    {
+                        RecipeId = id,
+                        ImageUrl = usedRecipeInput.SRImageUrl,
+                        UseDate = DateTime.Now.ToString(),
+                        Rate = usedRecipeInput.SRRate,
+                        Notes = usedRecipeInput.SRNotes
+                    };
+                    _dbContext.Use_RecipeDs.Add(successfulRecipe);
+                }
+                //if there was a usage in this recipe befor
+                else
+                {
+                    var successfulRecipe = new Use_Recipe
+                    {
+                        RecipeId = id,
+                        Rate = usedRecipeInput.SRRate,
+                        ImageUrl = string.Concat(userecipe.ImageUrl, ",", usedRecipeInput.SRImageUrl),
+                        UseDate = string.Concat(userecipe.UseDate, ",", DateTime.Now.ToString())
+                    };
+                    successfulRecipe.Notes.AddRange(usedRecipeInput.SRNotes);
+
+                    _dbContext.Entry(successfulRecipe).State = EntityState.Modified;
+                    try
+                    {
+                        await _dbContext.SaveChangesAsync();
+                    }
+                    catch (DbUpdateConcurrencyException)
+                    {
+                        throw;
+                    }
+                }
+                return Ok("Successful recipe added successfully.");
+            }
+            catch (Exception ex)
+            {
+                // טיפול בשגיאות
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        //// POST api/<RecipeController>
+        //[HttpPost]
+        //public async Task<ActionResult<Recipe>> Post([FromBody] SuccessfulRecipe newrecipe)
+        //{
+
+        //    var r = new Recipe
+        //    {
+        //        Title = newrecipe.SRTitle,
+        //        Description = newrecipe.SRDescription,
+        //        Instructions = newrecipe.SRInstructions,
+        //        RecipeIngredients = new List<IngredientMeasurement>()
+        //    };
+
+        //    foreach (var item in newrecipe.SRIngredients)
+        //    {
+        //        string[] words = item.Split(' ');
+        //        var ing = new Ingredients { IngredientName = words[2] };
+        //        _dbContext.IngredientsDs.Add(ing);
+        //        var temp = MeasurementUnit.Teaspoon;
+        //        if (Enum.TryParse(words[1], out MeasurementUnit unit))
+        //        {
+        //            temp = unit;
+        //        }
+        //        var ingme = new IngredientMeasurement 
+        //        { 
+        //            Quantity = double.Parse(words[0]),
+        //            Ingredient = ing,
+        //            MeasurementIngredientUnit = temp
+        //        };
+        //        _dbContext.IngredientMeasurementDs.Add(ingme);
+        //        r.RecipeIngredients.Add(ingme);
+        //    }
+
+
+        //    _dbContext.RecipeDs.Add(r);
+        //    await _dbContext.SaveChangesAsync();
+
+
+        //    return CreatedAtAction(nameof(GetRecipe), new { r.RecipeId}, r);
+        //}
+
+        //public async Task<ActionResult<IEnumerable<Recipe>>> SavePublicRecipe(int recipeId)
+
+        // PUT api/<RecipeController>/5
+        [HttpPut("UpdateNote/{id}")]
+        public async Task<IActionResult> UpdateNote(int id, [FromBody] Recipe_Note recipenote)
+        {
+            if(id != recipenote.Recipe_NoteId)
+            {
+                return BadRequest();
+            }
+            _dbContext.Entry(recipenote).State = EntityState.Modified;
+            try
+            {
+                await _dbContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                var recipen = await _dbContext.Recipe_NoteDs.Where(r => r.Recipe_NoteId == id).ToListAsync();
+                if (recipen != null)
+                {
+                    throw;
+                }
+                else { return NotFound(); }
+            }
+            return NoContent();
         }
 
         // DELETE api/<RecipeController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("DeleteRecipe/{id}")]
+        public async Task<IActionResult> DeleteRecipe(int id)
         {
+            if(_dbContext.RecipeDs == null)
+            {
+                return NotFound();
+            }
+            var recipe = await _dbContext.RecipeDs
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .FirstOrDefaultAsync(r => r.RecipeId == id);
+            if (recipe == null)
+            {
+                return NotFound();
+            }
+            var measingredient = recipe.RecipeIngredients;
+            foreach (var item in measingredient)
+            {
+                _dbContext.IngredientsDs.Remove(item.Ingredient);
+            }
+            _dbContext.IngredientMeasurementDs.RemoveRange(measingredient);
+            var usedrecipe = await _dbContext.Use_RecipeDs
+                .Include(r => r.Notes)
+                .FirstOrDefaultAsync(r => r.RecipeId == id);
+
+            if(usedrecipe != null)
+            {
+                var notes = usedrecipe.Notes;
+
+                if (notes != null)
+                {
+                    _dbContext.Recipe_NoteDs.RemoveRange(notes);
+                }
+                _dbContext.Use_RecipeDs.Remove(usedrecipe);
+            }
+            _dbContext.RecipeDs.Remove(recipe);
+            await _dbContext.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

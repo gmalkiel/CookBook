@@ -4,6 +4,7 @@ using CookBook.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CookBook.Migrations
 {
     [DbContext(typeof(RecipeContext))]
-    partial class RecipeContextModelSnapshot : ModelSnapshot
+    [Migration("20240513142034_InitialM")]
+    partial class InitialM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +35,8 @@ namespace CookBook.Migrations
                     b.Property<int>("IngredientsId")
                         .HasColumnType("int");
 
-                    b.Property<string>("MeasurementIngredientUnit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("MeasurementIngredientUnit")
+                        .HasColumnType("int");
 
                     b.Property<double>("Quantity")
                         .HasColumnType("float");
@@ -133,9 +134,8 @@ namespace CookBook.Migrations
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
-                    b.Property<string>("UseDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("UseDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Use_RecipeId");
 
