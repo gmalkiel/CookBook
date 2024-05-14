@@ -137,8 +137,5 @@ namespace CookBook.Controllers
         public void Delete(int id)
         {
         }
-
-
-
     }
 }
