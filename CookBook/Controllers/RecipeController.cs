@@ -11,6 +11,7 @@ using System.Text;
 using Newtonsoft.Json;
 using DP.Spoonacular;
 using static Azure.Core.HttpHeader;
+using Azure;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -175,7 +176,7 @@ namespace CookBook.Controllers
         {
             try
             {
-
+                var dateContent = "";
                 // כאן אפשר להוסיף את הלוגיקה להעלאת התמונה לשרת ולקבלת ה-URL שלה
                 // לדוגמה: var imageUrl = await _imageService.UploadImageAsync(successfulRecipeInput.Image);
                 var recipe = await _dbContext.RecipeDs.FindAsync(id);
@@ -183,7 +184,15 @@ namespace CookBook.Controllers
                 {
                     return NotFound();
                 }
-                var userecipe = await _dbContext.Use_RecipeDs.FindAsync(id);
+                var userecipe = await _dbContext.Use_RecipeDs.FirstOrDefaultAsync(ur => ur.RecipeId == id);
+                using (var httpClient = new HttpClient())
+                {
+                    using (var response = await httpClient.GetAsync($"https://localhost:7047/api/HebCal/GetDateCal"))
+                    {
+                        dateContent = await response.Content.ReadAsStringAsync();
+                        //var dateInfo = JsonConvert.DeserializeObject<RecipeWideInfo>(recipeContent);
+                    }
+                }
                 //if there was'nt a usage in this recipe befor
                 if (userecipe == null)
                 {
@@ -191,11 +200,18 @@ namespace CookBook.Controllers
                     {
                         RecipeId = id,
                         ImageUrl = usedRecipeInput.SRImageUrl,
-                        UseDate = DateTime.Now.ToString(),
+                        //UseDate = DateTime.Now.ToString(),
+                        UseDate = dateContent,
                         Rate = usedRecipeInput.SRRate,
                         Notes = usedRecipeInput.SRNotes
                     };
+                    foreach (var i in usedRecipeInput.SRNotes)
+                    {
+                        _dbContext.Recipe_NoteDs.Add(i);
+                    }
                     _dbContext.Use_RecipeDs.Add(successfulRecipe);
+                    await _dbContext.SaveChangesAsync();
+                    return CreatedAtAction(nameof(GetRecipe), new { id = successfulRecipe.RecipeId }, successfulRecipe);
                 }
                 //if there was a usage in this recipe befor
                 else
@@ -205,7 +221,8 @@ namespace CookBook.Controllers
                         RecipeId = id,
                         Rate = usedRecipeInput.SRRate,
                         ImageUrl = string.Concat(userecipe.ImageUrl, ",", usedRecipeInput.SRImageUrl),
-                        UseDate = string.Concat(userecipe.UseDate, ",", DateTime.Now.ToString())
+                        //UseDate = string.Concat(userecipe.UseDate, "\n", DateTime.Now.ToString())
+                        UseDate = string.Concat(userecipe.UseDate, "\n", DateTime.Now.ToString())
                     };
                     successfulRecipe.Notes.AddRange(usedRecipeInput.SRNotes);
 
@@ -218,7 +235,10 @@ namespace CookBook.Controllers
                     {
                         throw;
                     }
+                    
+                    
                 }
+
                 return Ok("Successful recipe added successfully.");
             }
             catch (Exception ex)
@@ -268,8 +288,6 @@ namespace CookBook.Controllers
 
         //    return CreatedAtAction(nameof(GetRecipe), new { r.RecipeId}, r);
         //}
-
-        //public async Task<ActionResult<IEnumerable<Recipe>>> SavePublicRecipe(int recipeId)
 
         // PUT api/<RecipeController>/5
         [HttpPut("UpdateNote/{id}")]
