@@ -24,5 +24,22 @@ namespace RBook
         {
             InitializeComponent();
         }
+        private void SearchLocal_Click(object sender, RoutedEventArgs e)
+        {
+            string keyword = searchBox.Text;
+            // כאן נבצע חיפוש מתכונים במקומי מהמאגר הנתונים המקומי
+            // לדוגמה: recipeListView.ItemsSource = RecipeRepository.SearchLocalRecipes(keyword);
+        }
+
+        private void SearchExternal_Click(object sender, RoutedEventArgs e)
+        {
+            string keyword = searchBox.Text;
+            // כאן נבצע חיפוש מתכונים במאגר חיצוני, כמו REST API או אחר
+            // לדוגמה: recipeListView.ItemsSource = ExternalAPI.SearchExternalRecipes(keyword);
+        }
+        //private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        //{
+
+        //}
     }
 }

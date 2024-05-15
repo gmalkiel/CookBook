@@ -7,6 +7,31 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <TextBlock Text="Your Saved Recipes List" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,20,0,10"/>
+
+        <!-- Search Box -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="20">
+            <TextBox x:Name="searchBox" Width="300" ToolTip="Search Recipes..." Margin="0,0,10,0"/>
+            <Button Content="Search Local" Click="SearchLocal_Click"/>
+            <Button Content="Search External" Click="SearchExternal_Click"/>
+        </StackPanel>
+
+        <!-- Recipe List -->
+        <ListView Grid.Row="2" x:Name="recipeListView" Margin="20">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Description}" FontSize="14"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Window>
