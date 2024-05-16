@@ -1,7 +1,10 @@
-﻿using RBook.ViewModels;
+﻿using CookBook.Models;
+using Newtonsoft.Json;
+using RBook.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,22 +31,112 @@ namespace RBook
             MyVM = new RecipeVM();
             this.DataContext = MyVM;
         }
-        private void SearchLocal_Click(object sender, RoutedEventArgs e)
+
+        private async void SearchLocal_Click(object sender, RoutedEventArgs e)
         {
             string keyword = searchBox.Text;
-            // כאן נבצע חיפוש מתכונים במקומי מהמאגר הנתונים המקומי
-            // לדוגמה: recipeListView.ItemsSource = RecipeRepository.SearchLocalRecipes(keyword);
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync($"https://localhost:7047/api/Recipe/searchbykeyword?keyword={keyword}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseData = await response.Content.ReadAsStringAsync();
+                        var recipes = JsonConvert.DeserializeObject<List<Recipe>>(responseData); // assuming you have a Recipe class
+                        recipeListView.ItemsSource = recipes;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Error: " + response.ReasonPhrase);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Exception: " + ex.Message);
+            }
         }
 
-        private void SearchExternal_Click(object sender, RoutedEventArgs e)
+        private async void SearchExternal_Click(object sender, RoutedEventArgs e)
         {
-            string keyword = searchBox.Text;
-            // כאן נבצע חיפוש מתכונים במאגר חיצוני, כמו REST API או אחר
-            // לדוגמה: recipeListView.ItemsSource = ExternalAPI.SearchExternalRecipes(keyword);
-        }
-        //private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        //{
+            string keyword = searchBox_Copy.Text;
 
-        //}
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var response = await client.GetAsync($"https://localhost:7047/api/Spoonacular/RecipeByKeyword/{keyword}");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseData = await response.Content.ReadAsStringAsync();
+                        var recipes = JsonConvert.DeserializeObject<List<Recipe>>(responseData); // assuming you have a Recipe class
+                        externalRecipeListView.ItemsSource = recipes;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Error: " + response.ReasonPhrase);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Exception: " + ex.Message);
+            }
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var addnewrecipe = new addNewRecipe();
+            addnewrecipe.ShowDialog();
+        }
+
+        private void EditRecipe_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            Recipe recipe = button?.Tag as Recipe;
+            if (recipe != null)
+            {
+                var editRecipeWindow = new EditRecipeWindow(recipe);
+                editRecipeWindow.ShowDialog();
+                // Refresh the recipe list if necessary
+            }
+        }
+
+        private async void DeleteRecipe_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var recipe = button?.Tag as Recipe;
+            if (recipe != null)
+            {
+                var result = MessageBox.Show($"Are you sure you want to delete the recipe '{recipe.Title}'?", "Delete Recipe", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (HttpClient client = new HttpClient())
+                        {
+                            var response = await client.DeleteAsync($"https://localhost:7047/api/Recipe/DeleteRecipe/{recipe.RecipeId}");
+                            if (response.IsSuccessStatusCode)
+                            {
+                                MessageBox.Show("Recipe deleted successfully.");
+                                // Refresh the recipe list if necessary
+                            }
+                            else
+                            {
+                                MessageBox.Show("Error: " + response.ReasonPhrase);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Exception: " + ex.Message);
+                    }
+                }
+            }
+        }
     }
 }
