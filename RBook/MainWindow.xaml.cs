@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RBook.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,12 @@ namespace RBook
     /// </summary>
     public partial class MainWindow : Window
     {
+        public RecipeVM MyVM { get; set; }
         public MainWindow()
         {
             InitializeComponent();
+            MyVM = new RecipeVM();
+            this.DataContext = MyVM;
         }
         private void SearchLocal_Click(object sender, RoutedEventArgs e)
         {
