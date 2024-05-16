@@ -40,7 +40,6 @@ namespace CookBook.Controllers
                 .ThenInclude(ri => ri.Ingredient)
                 .ToListAsync();
             return Ok(recipe);
-            //return await _dbContext.RecipeDs.ToListAsync();
         }
 
         //to get a recipe from the local book
@@ -73,7 +72,6 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-
             var matchingRecipes = await _dbContext.RecipeDs
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
@@ -87,7 +85,6 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-
             return Ok(matchingRecipes);
         }
 
@@ -109,7 +106,6 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-
             return Ok(RecipesContainIng);
         }
 
@@ -171,7 +167,7 @@ namespace CookBook.Controllers
             }
         }
 
-        [HttpPost("AddSuccessfulRecipe/{id}")]
+        [HttpPut("AddSuccessfulRecipe/{id}")]
         public async Task<ActionResult<IEnumerable<UsedRecipeInput>>> AddSuccessfulRecipe(int id, [FromBody] UsedRecipeInput usedRecipeInput)
         {
             try
@@ -182,7 +178,7 @@ namespace CookBook.Controllers
                 {
                     return NotFound();
                 }
-                var userecipe = await _dbContext.Use_RecipeDs.FirstOrDefaultAsync(ur => ur.RecipeId == id);
+                var userecipe = await _dbContext.Use_RecipeDs.Include(r => r.Notes).FirstOrDefaultAsync(ur => ur.RecipeId == id);
                 using (var httpClient = new HttpClient())
                 {
                     using (var response = await httpClient.GetAsync($"https://localhost:7047/api/HebCal/GetDateCal"))
@@ -212,17 +208,11 @@ namespace CookBook.Controllers
                 //if there was a usage in this recipe befor
                 else
                 {
-                    var successfulRecipe = new Use_Recipe
-                    {
-                        RecipeId = id,
-                        Rate = usedRecipeInput.SRRate,
-                        ImageUrl = string.Concat(userecipe.ImageUrl, ",", usedRecipeInput.SRImageUrl),
-                        //UseDate = string.Concat(userecipe.UseDate, "\n", DateTime.Now.ToString())
-                        UseDate = string.Concat(userecipe.UseDate, "\n", dateContent)
-                    };
-                    successfulRecipe.Notes.AddRange(usedRecipeInput.SRNotes);
-
-                    _dbContext.Entry(successfulRecipe).State = EntityState.Modified;
+                    userecipe.Rate = usedRecipeInput.SRRate;
+                    userecipe.Notes.AddRange(usedRecipeInput.SRNotes);
+                    userecipe.ImageUrl = string.Concat(userecipe.ImageUrl, ",", usedRecipeInput.SRImageUrl);
+                    userecipe.UseDate = string.Concat(userecipe.UseDate, "\n", dateContent);
+                    _dbContext.Entry(userecipe).State = EntityState.Modified;
                     try
                     {
                         await _dbContext.SaveChangesAsync();
@@ -231,10 +221,7 @@ namespace CookBook.Controllers
                     {
                         throw;
                     }
-                    
-                    
                 }
-
                 return Ok("Successful recipe added successfully.");
             }
             catch (Exception ex)
