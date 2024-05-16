@@ -4,13 +4,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.7.34024.191
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CookBook", "CookBook\CookBook.csproj", "{7B62B717-90CF-4CC1-B6DF-51FEDC89139B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3} = {28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RBook", "RBook\RBook.csproj", "{DB0BD47E-4BB9-4957-9052-096951BE8720}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DP", "DP\DP.csproj", "{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +21,6 @@ Global
 		{DB0BD47E-4BB9-4957-9052-096951BE8720}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB0BD47E-4BB9-4957-9052-096951BE8720}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB0BD47E-4BB9-4957-9052-096951BE8720}.Release|Any CPU.Build.0 = Release|Any CPU
-		{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28AE67E5-25E1-4697-ACF9-3B1BEC2B52D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

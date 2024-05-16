@@ -35,7 +35,12 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-            return await _dbContext.RecipeDs.ToListAsync();
+            var recipe = await _dbContext.RecipeDs
+                .Include(r => r.RecipeIngredients)
+                .ThenInclude(ri => ri.Ingredient)
+                .ToListAsync();
+            return Ok(recipe);
+            //return await _dbContext.RecipeDs.ToListAsync();
         }
 
         //to get a recipe from the local book
@@ -48,7 +53,6 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-            //var recipe = await _dbContext.RecipeDs.FindAsync(id);
             var recipe = await _dbContext.RecipeDs
                 .Include(r => r.RecipeIngredients)
                 .ThenInclude(ri => ri.Ingredient)
@@ -115,7 +119,6 @@ namespace CookBook.Controllers
         {
             using (var httpClient = new HttpClient())
             {
-                //https://localhost:7047/api/Spoonacular/RecipeInformation/665469
                 using (var response = await httpClient.GetAsync($"https://localhost:7047/api/Spoonacular/RecipeInformation/{recipeId}"))
                 {
                     if (response.IsSuccessStatusCode)
@@ -129,7 +132,6 @@ namespace CookBook.Controllers
                         }
                         var newrecipe = new Recipe
                         {
-                            //RecipeId = recipeId,
                             Title = recipeWideInfo.Title,
                             Description = recipeWideInfo.Summary,
                             Instructions = recipeWideInfo.Instructions
@@ -139,7 +141,6 @@ namespace CookBook.Controllers
                         {
                             var existingIng = await _dbContext.IngredientsDs
                                 .FirstOrDefaultAsync(i => i.IngredientName == ing.Name);
-                            //var finding = await _dbContext.RecipeDs.FindAsync(ing.Name);
                             if (_dbContext.IngredientsDs == null || existingIng == null)
                             {
                                 var newing = new Ingredients
@@ -170,15 +171,12 @@ namespace CookBook.Controllers
             }
         }
 
-        //public async Task<IActionResult> AddSuccessfulRecipe([FromBody] SuccessfulRecipeInputModel successfulRecipeInput)
         [HttpPost("AddSuccessfulRecipe/{id}")]
         public async Task<ActionResult<IEnumerable<UsedRecipeInput>>> AddSuccessfulRecipe(int id, [FromBody] UsedRecipeInput usedRecipeInput)
         {
             try
             {
                 var dateContent = "";
-                // כאן אפשר להוסיף את הלוגיקה להעלאת התמונה לשרת ולקבלת ה-URL שלה
-                // לדוגמה: var imageUrl = await _imageService.UploadImageAsync(successfulRecipeInput.Image);
                 var recipe = await _dbContext.RecipeDs.FindAsync(id);
                 if (_dbContext.RecipeDs == null || recipe == null)
                 {
@@ -190,7 +188,6 @@ namespace CookBook.Controllers
                     using (var response = await httpClient.GetAsync($"https://localhost:7047/api/HebCal/GetDateCal"))
                     {
                         dateContent = await response.Content.ReadAsStringAsync();
-                        //var dateInfo = JsonConvert.DeserializeObject<RecipeWideInfo>(recipeContent);
                     }
                 }
                 //if there was'nt a usage in this recipe befor
@@ -200,7 +197,6 @@ namespace CookBook.Controllers
                     {
                         RecipeId = id,
                         ImageUrl = usedRecipeInput.SRImageUrl,
-                        //UseDate = DateTime.Now.ToString(),
                         UseDate = dateContent,
                         Rate = usedRecipeInput.SRRate,
                         Notes = usedRecipeInput.SRNotes
@@ -222,7 +218,7 @@ namespace CookBook.Controllers
                         Rate = usedRecipeInput.SRRate,
                         ImageUrl = string.Concat(userecipe.ImageUrl, ",", usedRecipeInput.SRImageUrl),
                         //UseDate = string.Concat(userecipe.UseDate, "\n", DateTime.Now.ToString())
-                        UseDate = string.Concat(userecipe.UseDate, "\n", DateTime.Now.ToString())
+                        UseDate = string.Concat(userecipe.UseDate, "\n", dateContent)
                     };
                     successfulRecipe.Notes.AddRange(usedRecipeInput.SRNotes);
 
@@ -243,51 +239,9 @@ namespace CookBook.Controllers
             }
             catch (Exception ex)
             {
-                // טיפול בשגיאות
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
-
-        //// POST api/<RecipeController>
-        //[HttpPost]
-        //public async Task<ActionResult<Recipe>> Post([FromBody] SuccessfulRecipe newrecipe)
-        //{
-
-        //    var r = new Recipe
-        //    {
-        //        Title = newrecipe.SRTitle,
-        //        Description = newrecipe.SRDescription,
-        //        Instructions = newrecipe.SRInstructions,
-        //        RecipeIngredients = new List<IngredientMeasurement>()
-        //    };
-
-        //    foreach (var item in newrecipe.SRIngredients)
-        //    {
-        //        string[] words = item.Split(' ');
-        //        var ing = new Ingredients { IngredientName = words[2] };
-        //        _dbContext.IngredientsDs.Add(ing);
-        //        var temp = MeasurementUnit.Teaspoon;
-        //        if (Enum.TryParse(words[1], out MeasurementUnit unit))
-        //        {
-        //            temp = unit;
-        //        }
-        //        var ingme = new IngredientMeasurement 
-        //        { 
-        //            Quantity = double.Parse(words[0]),
-        //            Ingredient = ing,
-        //            MeasurementIngredientUnit = temp
-        //        };
-        //        _dbContext.IngredientMeasurementDs.Add(ingme);
-        //        r.RecipeIngredients.Add(ingme);
-        //    }
-
-
-        //    _dbContext.RecipeDs.Add(r);
-        //    await _dbContext.SaveChangesAsync();
-
-
-        //    return CreatedAtAction(nameof(GetRecipe), new { r.RecipeId}, r);
-        //}
 
         // PUT api/<RecipeController>/5
         [HttpPut("UpdateNote/{id}")]

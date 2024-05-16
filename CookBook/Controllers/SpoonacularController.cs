@@ -19,6 +19,50 @@ namespace CookBook.Controllers
     [ApiController]
     public class SpoonacularController : ControllerBase
     {
+        // Get information about a certain recipe by ID
+        // /api/recipes/
+        [HttpGet("RecipeInformation/{id}")]
+        public async Task<ActionResult<RecipeWideInfo>> GetRecipeInfoByID(int id)
+        {
+            string url = "https://api.spoonacular.com/recipes/" + id + "/information?apiKey=7f99c6c016c04352aacafbb6da33a8fe";
+            var client = new RestClient(url);
+            var request = new RestRequest(new Uri(url), Method.Get);
+            RestResponse response = client.Execute(request);
+
+            if (response == null)
+            {
+                return NotFound();
+            }
+            string RecipeInfo = response.Content;
+            try
+            {
+                RecipeWideInfo recipe = JsonConvert.DeserializeObject<RecipeWideInfo>(RecipeInfo);
+
+                //using (var httpClient = new HttpClient())
+                //{
+                //    using (var reciperesponse = await httpClient.GetAsync($"https://localhost:7047/api/Recipe/searchbykeyword/{"banana"}"))
+                //    {
+                //        if (response.IsSuccessStatusCode)
+                //        {
+                //            return Ok(reciperesponse);
+                //        }
+                //        else
+                //        {
+                //            //639152
+                //            return BadRequest("Failed to retrieve recipe from public repository.");
+                //        }
+                //    }
+                //}
+
+                return Ok(recipe);
+            }
+            catch (JsonSerializationException ex)
+            {
+                Console.WriteLine($"Error deserializing JSON: {ex.Message}");
+            }
+            return Ok(response);
+        }
+
         // Gives basic information about the recipes just for the display
         // GET /api/recipes/findByIngredients
         [HttpGet("findByIngredients/{IngredientName}")]
@@ -41,81 +85,48 @@ namespace CookBook.Controllers
 
                 foreach (var recipe in recipes)
                 {
-                    //string recinfo =  GetRecipeInfoByID(recipe.Id);
-                    //Console.WriteLine($"Recipe ID: {recipe.Id}, Title: {recipe.Title}, Likes: {recipe.Likes}");
+                    string url1 = "https://api.spoonacular.com/recipes/" + recipe.Id + "/information?apiKey=7f99c6c016c04352aacafbb6da33a8fe";
+                    var client1 = new RestClient(url1);
+                    var request1 = new RestRequest(new Uri(url1), Method.Get);
+                    RestResponse response1 = client.Execute(request1);
+                    RecipeWideInfo recipeInfo = JsonConvert.DeserializeObject<RecipeWideInfo>(response1.Content);
+                    //RecipeWideInfo recipeInfo = GetWideInfo(recipe.Id);
                     Recipe newRecipe = new Recipe
                     {
+                //        var recipe = await _dbContext.RecipeDs
+                //.Include(r => r.RecipeIngredients)
+                //.ThenInclude(ri => ri.Ingredient)
+                //.FirstOrDefaultAsync(r => r.RecipeId == id);
                         RecipeId = recipe.Id,
                         Title = recipe.Title,
-                        Description = "i dont have yet",
-                        Instructions = "i dont have instructions yet"
+                        Description = recipeInfo.Summary,
+                        Instructions = recipeInfo.Instructions
                     };
-
-                    // Add the new recipe to the new list
+                    List<IngredientMeasurement> ingredientlist = new List<IngredientMeasurement>();
+                    foreach (var ing in recipeInfo.ExtendedIngredients)
+                    {
+                        var newing = new Ingredients
+                        {
+                            IngredientName = ing.Name
+                        };
+                        var newingmeas = new IngredientMeasurement
+                        {
+                            Quantity = ing.Amount,
+                            Ingredient = newing,
+                            MeasurementIngredientUnit = ing.Unit
+                        };
+                        ingredientlist.Add(newingmeas);
+                    }
+                    newRecipe.RecipeIngredients = ingredientlist;
                     newRecipes.Add(newRecipe);
                 }
                 return Ok(newRecipes);
             }
             catch (JsonSerializationException ex)
             {
-                Console.WriteLine($"Error deserializing JSON: {ex.Message}");
-            }
-            //RecipeList recipes = JsonConvert.DeserializeObject<RecipeList>(mytry);
-            //foreach (DP.Spoonacular.Recipe recipe in recipes) 
-            //{
-            //    Models.Recipe recipe1 = new Models.Recipe();
-            //    recipe1.RecipeId = recipe.Id;
-            //    recipe1.Title = recipe.Title;
-            //}
-
-            return Ok(response);
-        }
-
-        // Get information about a certain recipe by ID
-        // /api/recipes/
-        [HttpGet("RecipeInformation/{id}")]
-        public async Task<ActionResult<RecipeWideInfo>> GetRecipeInfoByID(int id)
-        {
-            string url = "https://api.spoonacular.com/recipes/" + id + "/information?apiKey=7f99c6c016c04352aacafbb6da33a8fe";
-            var client = new RestClient(url);
-            var request = new RestRequest(new Uri(url), Method.Get);
-            RestResponse response = client.Execute(request);
-
-            if (response == null)
-            {
                 return NotFound();
             }
-            string RecipeInfo = response.Content;
-            try
-            {
-                RecipeWideInfo recipe = JsonConvert.DeserializeObject<RecipeWideInfo>(RecipeInfo);
 
-                // Accessing recipe information
-                Console.WriteLine($"Recipe Title: {recipe.Title}");
-                Console.WriteLine($"Ready In Minutes: {recipe.ReadyInMinutes}");
-                Console.WriteLine($"Servings: {recipe.Servings}");
-                Console.WriteLine($"Source URL: {recipe.SourceUrl}");
-
-                // Accessing extended ingredients
-                foreach (var ingredient in recipe.ExtendedIngredients)
-                {
-                    Console.WriteLine($"Ingredient: {ingredient.Name}, Amount: {ingredient.Amount} {ingredient.Unit}");
-                }
-
-                // Accessing instructions
-                Console.WriteLine("Instructions:");
-                Console.WriteLine(recipe.Instructions);
-
-                return Ok(recipe);
-                //return recipe;
-            }
-            catch (JsonSerializationException ex)
-            {
-                Console.WriteLine($"Error deserializing JSON: {ex.Message}");
-            }
-
-           
-            return Ok(response);
         }
 
         // Get recipes similar to a certain recipe
@@ -132,31 +143,50 @@ namespace CookBook.Controllers
             {
                 return NotFound();
             }
-            string similarRec = response.Content;
             try
             {
-                List<RecipeSim> recipessim = JsonConvert.DeserializeObject<List<RecipeSim>>(similarRec);
-                List<RecipeWideInfo> recipeinfolist = new List<RecipeWideInfo>();
+                List<RecipeSim> recipessim = JsonConvert.DeserializeObject<List<RecipeSim>>(response.Content);
+                List<Recipe> recipeinfolist = new List<Recipe>();
 
                 foreach (var recipe in recipessim)
                 {
-                    //var client1 = new RestClient(recipe.SourceUrl);
-                    //var request1 = new RestRequest(new Uri(recipe.SourceUrl), Method.Get);
-                    //RestResponse response1 = client.Execute(request);
-                    //if (response1 == null) { return NotFound(); }
-                    //return Ok(response1);
-                    //GetRecipeInfoByID(recipe.Id);
-                    Console.WriteLine($"Title: {recipe.Title}, Servings: {recipe.Servings}, Source URL: {recipe.SourceUrl}");
+                    string url1 = "https://api.spoonacular.com/recipes/" + recipe.Id + "/information?apiKey=7f99c6c016c04352aacafbb6da33a8fe";
+                    var client1 = new RestClient(url1);
+                    var request1 = new RestRequest(new Uri(url1), Method.Get);
+                    RestResponse response1 = client.Execute(request1);
+                    RecipeWideInfo recipeInfo = JsonConvert.DeserializeObject<RecipeWideInfo>(response1.Content);
+                    Recipe newRecipe = new Recipe
+                    {
+                        RecipeId = recipe.Id,
+                        Title = recipe.Title,
+                        Description = recipeInfo.Summary,
+                        Instructions = recipeInfo.Instructions
+                    };
+                    List<IngredientMeasurement> ingredientlist = new List<IngredientMeasurement>();
+                    foreach (var ing in recipeInfo.ExtendedIngredients)
+                    {
+                        var newing = new Ingredients
+                        {
+                            IngredientName = ing.Name
+                        };
+                        var newingmeas = new IngredientMeasurement
+                        {
+                            Quantity = ing.Amount,
+                            Ingredient = newing,
+                            MeasurementIngredientUnit = ing.Unit
+                        };
+                        ingredientlist.Add(newingmeas);
+                    }
+                    newRecipe.RecipeIngredients = ingredientlist;
+                    recipeinfolist.Add(newRecipe);
                 }
-                return Ok(recipessim);
+                return Ok(recipeinfolist);
             }
             catch (JsonSerializationException ex)
             {
-                Console.WriteLine($"Error deserializing JSON: {ex.Message}");
+                return NotFound();
             }
 
-
-            return Ok(response);
         }
 
         // Get recipes by keyword
@@ -165,10 +195,7 @@ namespace CookBook.Controllers
         public async Task<ActionResult<RecipeSearchResponse>> GetRecipeByKeyword(string keyWord)
         {
             string url1 = "https://api.spoonacular.com/recipes/complexSearch?apiKey=7f99c6c016c04352aacafbb6da33a8fe&query=" + keyWord + "&number=8";
-            //string url2 = "https://api.spoonacular.com/recipes/complexSearch?apiKey=7f99c6c016c04352aacafbb6da33a8fe&tags=" + keyWord + "&number=8";
-
             var client = new RestClient();
-
             var request1 = new RestRequest(new Uri(url1), Method.Get);
             RestResponse response1 = client.Execute(request1);
             if (response1 == null)
@@ -180,14 +207,14 @@ namespace CookBook.Controllers
             {
                 RecipeSearchResponse recipeRes1 = JsonConvert.DeserializeObject<RecipeSearchResponse>(Recipes1);
                 
-                RecipeSearchResponse combinedResponse = new RecipeSearchResponse
-                {
-                    Results = recipeRes1.Results.ToList(),
-                    Offset = recipeRes1.Offset,
-                    Number = recipeRes1.Number,
-                    TotalResults = recipeRes1.TotalResults
-                };
-                return Ok(combinedResponse);
+                //RecipeSearchResponse combinedResponse = new RecipeSearchResponse
+                //{
+                //    Results = recipeRes1.Results.ToList(),
+                //    Offset = recipeRes1.Offset,
+                //    Number = recipeRes1.Number,
+                //    TotalResults = recipeRes1.TotalResults
+                //};
+                return Ok(recipeRes1);
             }
             catch (JsonSerializationException ex)
             {

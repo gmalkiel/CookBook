@@ -27,13 +27,6 @@ namespace RBook.ViewModels
 
             OpenRecipeCommand = new RelayCommand(OpenRecipe);
         }
-        
-
-        //private void ConvertTemperatures(object obj)
-        //{
-        //    Fahrenheit = (Celsius * 9.0 / 5.0) + 32;
-        //    Kelvin = Celsius + 273.15;
-        //}
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -43,22 +36,9 @@ namespace RBook.ViewModels
         }
 
         public ICommand OpenRecipeCommand { get; set; }
-
-
-        private ObservableCollection<Recipe> recipes;
-        public ObservableCollection<Recipe> Recipes
-        {
-            get { return recipes; }
-            set
-            {
-                recipes = value;
-                OnPropertyChanged("Recipes");
-            }
-        }
-
+       
         private void OpenRecipe(object parameter)
         {
-            // הוספת קוד כאן לפתיחת עמוד חדש עם המתכון הנבחר
             Recipe selectedRecipe = parameter as Recipe;
             if (selectedRecipe != null)
             {

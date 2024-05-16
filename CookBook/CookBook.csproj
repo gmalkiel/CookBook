@@ -23,8 +23,4 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\DP\DP.csproj" />
-  </ItemGroup>
-
 </Project>
