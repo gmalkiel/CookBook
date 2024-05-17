@@ -1,10 +1,58 @@
 ﻿<Window x:Class="CookBook.EditCommentsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="ערוך הערות" Height="450" Width="800">
-    <Grid>
-        <TextBox x:Name="RecipeIdTextBox" DataContext="ID של המתכון" />
-        <TextBox x:Name="RecipeCommentsTextBox" DataContext="הערות חדשות" />
-        <Button Content="עדכן הערות" Click="UpdateCommentsButton_Click" />
+        Title="ערוך הערות" Height="350" Width="500" WindowStartupLocation="CenterScreen" Background="#F0F0F0">
+    <Window.Resources>
+        <!-- Define TextBox style -->
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+
+        <!-- Define Button style -->
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="5" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005B99"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid RenderTransformOrigin="1.262,0.332">
+        <Border Background="White" CornerRadius="10" Padding="20" Margin="20" BorderBrush="#CCCCCC" BorderThickness="1">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Width="400">
+                <TextBlock Text="ערוך הערות" FontSize="24" FontWeight="Bold" Foreground="#007ACC" Margin="0,0,0,20" HorizontalAlignment="Center"/>
+                <TextBox x:Name="RecipeIdTextBox" Text="מספר מתכון" Foreground="Gray" GotFocus="RemoveText" LostFocus="AddText"/>
+                <TextBox x:Name="RecipeCommentsTextBox" Text="הערות חדשות" Foreground="Gray" Height="100" AcceptsReturn="True" TextWrapping="Wrap" GotFocus="RemoveText" LostFocus="AddText"/>
+                <Button Content="עדכן הערות" Click="UpdateCommentsButton_Click" Width="104"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

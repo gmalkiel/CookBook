@@ -1,5 +1,7 @@
 ﻿using CookBook.Models;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 public partial class EditCommentsWindow : Window
 {
@@ -10,7 +12,25 @@ public partial class EditCommentsWindow : Window
         InitializeComponent();
         _context = new RecipeContext();
     }
+    private void RemoveText(object sender, RoutedEventArgs e)
+    {
+        TextBox textBox = sender as TextBox;
+        if (textBox != null && textBox.Text == textBox.Tag.ToString())
+        {
+            textBox.Text = "";
+            textBox.Foreground = Brushes.Black;
+        }
+    }
 
+    private void AddText(object sender, RoutedEventArgs e)
+    {
+        TextBox textBox = sender as TextBox;
+        if (textBox != null && string.IsNullOrWhiteSpace(textBox.Text))
+        {
+            textBox.Text = textBox.Tag.ToString();
+            textBox.Foreground = Brushes.Gray;
+        }
+    }
     private void UpdateCommentsButton_Click(object sender, RoutedEventArgs e)
     {
         var recipeId = int.Parse(RecipeIdTextBox.Text);

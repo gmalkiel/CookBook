@@ -43,7 +43,7 @@ public partial class AllRecipesWindow : Window
 
     private async Task<List<Recipe>> GetExternalRecipesAsync()
     {
-        client.BaseAddress = new Uri("http://localhost:7047/");
+        client.BaseAddress = new Uri("http://localhost:5001/");
         client.DefaultRequestHeaders.Accept.Clear();
         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -59,5 +59,15 @@ public partial class AllRecipesWindow : Window
             MessageBox.Show("Error retrieving external recipes.");
             return new List<Recipe>();
         }
+    }
+
+    private void AddRecipe_Click(object sender, RoutedEventArgs e)
+    {
+        // Logic to add a new recipe
+    }
+
+    private void Refresh_Click(object sender, RoutedEventArgs e)
+    {
+        LoadRecipes();
     }
 }
