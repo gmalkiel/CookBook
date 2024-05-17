@@ -1,6 +1,7 @@
 ﻿using CookBook.Models;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Windows;
@@ -12,9 +13,9 @@ namespace RBook
     /// </summary>
     public partial class EditRecipeWindow : Window
     {
-        private Recipe _recipe;
+        private Use_Recipe _recipe;
 
-        public EditRecipeWindow(Recipe recipe)
+        public EditRecipeWindow(Use_Recipe recipe)
         {
             InitializeComponent();
             _recipe = recipe;
@@ -23,9 +24,9 @@ namespace RBook
 
         private void LoadRecipeDetails()
         {
-            titleTextBox.Text = _recipe.Title;
-            descriptionTextBox.Text = _recipe.Description;
-            ingredientsTextBox.Text = _recipe.Ingredients; 
+            titleTextBox.Text = _recipe.;
+            descriptionTextBox.Text = _recipe.;
+            ingredientsTextBox.Text = _recipe.RecipeIngredients.ToString(); 
             instructionsTextBox.Text = _recipe.Instructions; 
         }
 
@@ -33,7 +34,7 @@ namespace RBook
         {
             _recipe.Title = titleTextBox.Text;
             _recipe.Description = descriptionTextBox.Text;
-            _recipe.RecipeIngredients. = ingredientsTextBox.Text;
+            _recipe.RecipeIngredients = ingredientsTextBox.Text.ToList;
             _recipe.Instructions = instructionsTextBox.Text;
 
             try

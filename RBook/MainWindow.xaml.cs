@@ -9,13 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace RBook
 {
@@ -97,7 +93,7 @@ namespace RBook
         private void EditRecipe_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            Recipe recipe = button?.Tag as Recipe;
+            var recipe = button?.Tag as Use_Recipe;
             if (recipe != null)
             {
                 var editRecipeWindow = new EditRecipeWindow(recipe);
@@ -136,6 +132,16 @@ namespace RBook
                         MessageBox.Show("Exception: " + ex.Message);
                     }
                 }
+            }
+        }
+
+        private void RecipeListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var selectedRecipe = (sender as ListView)?.SelectedItem as Recipe;
+            if (selectedRecipe != null)
+            {
+                var recipeDetailsWindow = new RecipeDetailsWindow(selectedRecipe);
+                recipeDetailsWindow.ShowDialog();
             }
         }
     }

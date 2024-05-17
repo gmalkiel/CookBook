@@ -27,7 +27,7 @@ namespace CookBook.Models
 
     public class Use_Recipe
     {
-        public int Use_RecipeId { get; set; }
+        //public int Use_RecipeId { get; set; }
         public int RecipeId { get; set; }
         public string ImageUrl { get; set; }
         public string UseDate { get; set; }

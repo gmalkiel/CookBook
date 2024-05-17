@@ -23,7 +23,7 @@
         </StackPanel>
 
         <!-- Recipe List -->
-        <ListView ItemsSource="{Binding Recipes}" Grid.Row="2" x:Name="recipeListView" Margin="10,0,20,40">
+        <ListView ItemsSource="{Binding Recipes}" Grid.Row="2" x:Name="recipeListView" Margin="10,0,20,40" MouseDoubleClick="RecipeListView_MouseDoubleClick">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="0,0,0,10">
