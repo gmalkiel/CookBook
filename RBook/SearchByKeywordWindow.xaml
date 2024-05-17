@@ -1,0 +1,17 @@
+﻿<Window x:Class="CookBook.SearchByKeywordWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="חפש מתכונים לפי מילת מפתח" Height="450" Width="800">
+    <Grid>
+        <TextBox x:Name="KeywordTextBox" DataContext="מילת מפתח" />
+        <Button Content="חפש" Click="SearchButton_Click" />
+        <ListView x:Name="KeywordSearchResultsListView">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="שם מתכון" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="תיאור" DisplayMemberBinding="{Binding Description}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

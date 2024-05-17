@@ -1,0 +1,13 @@
+﻿<Window x:Class="CookBook.AddRecipeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="הוסף מתכון חדש" Height="450" Width="800">
+    <Grid>
+        <StackPanel>
+            <TextBox x:Name="RecipeNameTextBox" DataContext="שם מתכון" />
+            <TextBox x:Name="RecipeDescriptionTextBox" DataContext="תיאור מתכון" />
+            <TextBox x:Name="RecipeIngredientsTextBox" DataContext="מרכיבים (מופרדים בפסיק)" />
+            <Button Content="הוסף מתכון" Click="AddRecipeButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

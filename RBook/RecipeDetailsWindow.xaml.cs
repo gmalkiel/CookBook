@@ -1,32 +1,27 @@
 ﻿using CookBook.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System;
 
-namespace RBook
+public partial class RecipeDetailsWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for RecipeDetailsWindow.xaml
-    /// </summary>
-    public partial class RecipeDetailsWindow : Window
+    private RecipeContext _context;
+
+    public RecipeDetailsWindow()
     {
-        public RecipeDetailsWindow(Recipe recipe)
+        //System.InitializeComponent();
+        _context = new RecipeContext();
+    }
+
+    private void ShowDetailsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var recipeId = int.Parse(RecipeIdTextBox.Text);
+        var recipe = _context.Recipes.Find(recipeId);
+        if (recipe != null)
         {
-            InitializeComponent();
-            var client = new HttpClient();
-            var response =  client.GetAsync($"https://localhost:7047/api/Recipe/{recipe.RecipeId}");
-            string responseBody = await response.Content.ReadAsStringAsync();
+            RecipeNameTextBlock.Text = recipe.Name;
+            RecipeDescriptionTextBlock.Text = recipe.Description;
+            RecipeRatingTextBlock.Text = recipe.Rating.ToString();
+            // Load image and other details
         }
     }
 }

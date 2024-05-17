@@ -1,148 +1,65 @@
-﻿using CookBook.Models;
-using Newtonsoft.Json;
-using RBook.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
-namespace RBook
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public MainWindow()
     {
-        public RecipeVM MyVM { get; set; }
-        public MainWindow()
-        {
-            InitializeComponent();
-            MyVM = new RecipeVM();
-            this.DataContext = MyVM;
-        }
+        InitializeComponent();
+    }
 
-        private async void SearchLocal_Click(object sender, RoutedEventArgs e)
-        {
-            string keyword = searchBox.Text;
 
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    var response = await client.GetAsync($"https://localhost:7047/api/Recipe/searchbykeyword?keyword={keyword}");
+    private void ShowAllRecipes_Click(object sender, RoutedEventArgs e)
+    {
+        var allRecipesWindow = new AllRecipesWindow();
+        allRecipesWindow.Show();
+    }
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseData = await response.Content.ReadAsStringAsync();
-                        var recipes = JsonConvert.DeserializeObject<List<Recipe>>(responseData); // assuming you have a Recipe class
-                        recipeListView.ItemsSource = recipes;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error: " + response.ReasonPhrase);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Exception: " + ex.Message);
-            }
-        }
+    private void AddRecipe_Click(object sender, RoutedEventArgs e)
+    {
+        var addRecipeWindow = new AddRecipeWindow();
+        addRecipeWindow.Show();
+    }
 
-        private async void SearchExternal_Click(object sender, RoutedEventArgs e)
-        {
-            string keyword = searchBox_Copy.Text;
+    private void EditRecipe_Click(object sender, RoutedEventArgs e)
+    {
+        var editRecipeWindow = new EditRecipeWindow();
+        editRecipeWindow.Show();
+    }
 
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    var response = await client.GetAsync($"https://localhost:7047/api/Spoonacular/RecipeByKeyword/{keyword}");
+    private void RecipeUsage_Click(object sender, RoutedEventArgs e)
+    {
+        var recipeUsageWindow = new RecipeUsageWindow();
+        recipeUsageWindow.Show();
+    }
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseData = await response.Content.ReadAsStringAsync();
-                        var recipes = JsonConvert.DeserializeObject<List<Recipe>>(responseData); // assuming you have a Recipe class
-                        externalRecipeListView.ItemsSource = recipes;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error: " + response.ReasonPhrase);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Exception: " + ex.Message);
-            }
-        }
+    private void RecipeDetails_Click(object sender, RoutedEventArgs e)
+    {
+        var recipeDetailsWindow = new RecipeDetailsWindow();
+        recipeDetailsWindow.Show();
+    }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            var addnewrecipe = new addNewRecipe();
-            addnewrecipe.ShowDialog();
-        }
+    private void EditComments_Click(object sender, RoutedEventArgs e)
+    {
+        var editCommentsWindow = new EditCommentsWindow();
+        editCommentsWindow.Show();
+    }
 
-        private void EditRecipe_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var recipe = button?.Tag as Use_Recipe;
-            if (recipe != null)
-            {
-                var editRecipeWindow = new EditRecipeWindow(recipe);
-                editRecipeWindow.ShowDialog();
-                // Refresh the recipe list if necessary
-            }
-        }
+    private void SearchByKeyword_Click(object sender, RoutedEventArgs e)
+    {
+        var searchByKeywordWindow = new SearchByKeywordWindow();
+        searchByKeywordWindow.Show();
+    }
 
-        private async void DeleteRecipe_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var recipe = button?.Tag as Recipe;
-            if (recipe != null)
-            {
-                var result = MessageBox.Show($"Are you sure you want to delete the recipe '{recipe.Title}'?", "Delete Recipe", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        using (HttpClient client = new HttpClient())
-                        {
-                            var response = await client.DeleteAsync($"https://localhost:7047/api/Recipe/DeleteRecipe/{recipe.RecipeId}");
-                            if (response.IsSuccessStatusCode)
-                            {
-                                MessageBox.Show("Recipe deleted successfully.");
-                                // Refresh the recipe list if necessary
-                            }
-                            else
-                            {
-                                MessageBox.Show("Error: " + response.ReasonPhrase);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Exception: " + ex.Message);
-                    }
-                }
-            }
-        }
+    private void SearchByIngredient_Click(object sender, RoutedEventArgs e)
+    {
+        var searchByIngredientWindow = new SearchByIngredientWindow();
+        searchByIngredientWindow.Show();
+    }
 
-        private void RecipeListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            var selectedRecipe = (sender as ListView)?.SelectedItem as Recipe;
-            if (selectedRecipe != null)
-            {
-                var recipeDetailsWindow = new RecipeDetailsWindow(selectedRecipe);
-                recipeDetailsWindow.ShowDialog();
-            }
-        }
+    private void SimilarRecipes_Click(object sender, RoutedEventArgs e)
+    {
+        var similarRecipesWindow = new SimilarRecipesWindow();
+        similarRecipesWindow.Show();
     }
 }

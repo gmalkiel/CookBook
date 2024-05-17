@@ -1,0 +1,16 @@
+﻿<Window x:Class="CookBook.AllRecipesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="כל המתכונים" Height="450" Width="800">
+    <Grid>
+        <ListView x:Name="RecipesListView">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="שם מתכון" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="תיאור" DisplayMemberBinding="{Binding Description}" />
+                    <GridViewColumn Header="דירוג" DisplayMemberBinding="{Binding Rating}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

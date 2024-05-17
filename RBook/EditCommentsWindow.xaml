@@ -1,0 +1,10 @@
+﻿<Window x:Class="CookBook.EditCommentsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ערוך הערות" Height="450" Width="800">
+    <Grid>
+        <TextBox x:Name="RecipeIdTextBox" DataContext="ID של המתכון" />
+        <TextBox x:Name="RecipeCommentsTextBox" DataContext="הערות חדשות" />
+        <Button Content="עדכן הערות" Click="UpdateCommentsButton_Click" />
+    </Grid>
+</Window>

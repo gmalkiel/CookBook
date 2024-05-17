@@ -1,0 +1,16 @@
+﻿<Window x:Class="CookBook.RecipeUsageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="זמני שימוש" Height="450" Width="800">
+    <Grid>
+        <TextBox x:Name="RecipeIdTextBox" DataContext="ID של המתכון" />
+        <Button Content="הצג זמני שימוש" Click="ShowUsageButton_Click" />
+        <ListView x:Name="UsageListView">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="תאריך שימוש" DisplayMemberBinding="{Binding UsageDate}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
